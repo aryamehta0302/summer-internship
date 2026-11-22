@@ -1,0 +1,14 @@
+{
+  "status": 500,
+  "error": {
+    "success": false,
+    "error": {
+      "error": {
+        "message": "Authentication Error",
+        "code": 190,
+        "type": "OAuthException",
+        "fbtrace_id": "A5uoLgm4o_rw6Q5C57h6tEG"
+      }
+    }
+  }
+}

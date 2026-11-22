@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    actor Client
+    participant Server as Express Server (server.js)
+    participant FB_Graph as WhatsApp Cloud API
+    actor EndUser as WhatsApp User
+
+    Note over Client,Server: Step 1: Client initiates request
+    Client->>Server: POST /send-message<br/>{ number: "1234567890", message: "Hello" }
+
+    Note over Server: Step 2: Parse Request & Environment
+    Server->>Server: Express JSON Parser reads req.body
+    Server->>Server: Retrieve TOKEN & PHONE_NUMBER_ID from .env
+
+    Note over Server,FB_Graph: Step 3: Forward to Meta/Facebook Graph API
+    Server->>FB_Graph: POST https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/messages
+    Note right of Server: Headers: { Authorization: Bearer {TOKEN}, Content-Type: application/json }<br/>Body: { messaging_product: "whatsapp", to: number, type: "text", text: { body: message } }
+
+    alt Successful API Call
+        FB_Graph->>EndUser: Delivers WhatsApp Message
+        FB_Graph-->>Server: HTTP 200 OK<br/>{ messaging_product: "whatsapp", contacts: [...], messages: [...] }
+        Server-->>Client: HTTP 200 OK<br/>{ success: true, data: { ... } }
+    else Failed API Call (e.g., Invalid Token / Number)
+        FB_Graph-->>Server: HTTP 4xx / 5xx Error Response
+        Server->>Server: console.error(error.response.data)
+        Server-->>Client: HTTP 500 Internal Server Error<br/>{ success: false, error: { ... } }
+    end
